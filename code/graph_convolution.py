@@ -16,7 +16,7 @@ class GraphConv(Layer):
     When using this layer as the first layer in a model,
     provide an `input_shape` argument
     (tuple of integers e.g. `(1000, 1)` for a graph 
-    with 10 features (or nodes) and a single filter.
+    with 1000 features (or nodes) and a single filter.
 
     # Arguments
         nb_filter: Number of convolution kernels to use

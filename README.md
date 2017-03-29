@@ -1,6 +1,6 @@
-# Convolutional Neural Networks Generalization Utilizing the Data Graph Structure
+# A generalization of Convolutional Neural Networks to Graph-Structured Data
 
-This is supplementary code to "Convolutional Neural Networks Generalization Utilizing the Data Graph Structure", by Yotam Hechtlinger, Purvasha Chakravarti and Jining Qin.
+This is supplementary code to "A generalization of Convolutional Neural Networks to Graph-Structured Data", by Yotam Hechtlinger, Purvasha Chakravarti and Jining Qin.
 
 ------------------
 

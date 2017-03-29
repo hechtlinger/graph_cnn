@@ -1,6 +1,6 @@
 '''
-Utilities function to generate and use the transition matrix Q for
-grid structure graph, where each vertex is connected to all its 8
+Utilities functions to generate and use the transition matrix Q for
+a grid structure graph, where each vertex is connected to all its 8
 adjunct neighbors.
 '''    
 

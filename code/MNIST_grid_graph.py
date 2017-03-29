@@ -1,5 +1,5 @@
 """
-MNIST expriment exploring the performance of the graph convolution
+MNIST experiment exploring the performance of the graph convolution
 when the graph structure connect a pixel to its 8 adjunct neighbors. 
 
 This reproduce the results described in section 4.2.
@@ -54,14 +54,14 @@ q_mat_layer2 = np.argsort(q_mat_layer2,1)[:,-nb_neighbors:]
 
 # %% Standard LeNet structure with Graph Convolution
 model = Sequential()
-model.add(GraphConv(nb_filter=nb_layer_1, Q_matrix = q_mat_layer1, 
+model.add(GraphConv(nb_filter=nb_layer_1, neighbors_ix_mat = q_mat_layer1, 
                     nb_neighbors=nb_neighbors, activation='relu',
                     input_shape=(X_train.shape[1],1,)))
 model.add(Reshape((28, 28, nb_layer_1)))
 model.add(MaxPooling2D(pool_size=pool_size, dim_ordering='tf'))
 model.add(Dropout(0.25))
 model.add(Reshape((196, nb_layer_1)))
-model.add(GraphConv(nb_filter=nb_layer_2, Q_matrix = q_mat_layer2, 
+model.add(GraphConv(nb_filter=nb_layer_2, neighbors_ix_mat = q_mat_layer2, 
                     nb_neighbors=nb_neighbors, activation='relu', bias = True))
 model.add(Reshape((14, 14, nb_layer_2)))
 model.add(MaxPooling2D(pool_size=pool_size, dim_ordering='tf'))

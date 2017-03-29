@@ -1,12 +1,11 @@
 '''
-MNIST expriment comparing the performance of the graph convolution
+MNIST experiment comparing the performance of the graph convolution
 with Logistic regression and fully connected neural networks. 
 
 The data graph structured is learned from the correlation matrix. 
 
 This reproduce the results shown in table 2 of:
-"Convolutional Neural Networks Generalization Utilizing the Data 
-Graph Structure"
+"A generalization of Convolutional Neural Networks to Graph-Structured Data"
 '''
 
 ### Dependencies 
@@ -63,7 +62,7 @@ graph_mat = np.argsort(corr_mat,1)[:,-nb_neighbors:]
 
 ### Single layer of Graph Convolution
 g_model = Sequential()
-g_model.add(GraphConv(nb_filter=nb_filter, Q_matrix = graph_mat, 
+g_model.add(GraphConv(nb_filter=nb_filter, neighbors_ix_mat = graph_mat, 
                       nb_neighbors=nb_neighbors, activation='relu',
                       input_shape=(X_train.shape[1],1,)))
 g_model.add(Dropout(0.2))
@@ -86,7 +85,7 @@ g_error = 1-results['g'].__dict__['history']['val_acc'][-1]
 
 ### Graph Convolution followed by FC layer
 g_fc_model = Sequential()
-g_fc_model.add(GraphConv(nb_filter=nb_filter, Q_matrix = graph_mat, 
+g_fc_model.add(GraphConv(nb_filter=nb_filter, neighbors_ix_mat = graph_mat, 
                          nb_neighbors=nb_neighbors, activation='relu', 
                          input_shape=(X_train.shape[1],1,)))
 g_fc_model.add(Dropout(0.2))
@@ -111,11 +110,11 @@ g_fc_error = 1-results['g_fc'].__dict__['history']['val_acc'][-1]
 
 ### 2 Layer of Graph Convolution
 g_g_model = Sequential()
-g_g_model.add(GraphConv(nb_filter=nb_filter, Q_matrix = graph_mat, 
+g_g_model.add(GraphConv(nb_filter=nb_filter, neighbors_ix_mat = graph_mat, 
                         nb_neighbors=nb_neighbors, activation='relu', 
                         bias = True, input_shape=(X_train.shape[1],1,)))
 g_g_model.add(Dropout(0.2))
-g_g_model.add(GraphConv(nb_filter=nb_filter, Q_matrix = graph_mat, 
+g_g_model.add(GraphConv(nb_filter=nb_filter, neighbors_ix_mat = graph_mat, 
                         nb_neighbors=nb_neighbors, activation='relu'))
 g_g_model.add(Dropout(0.2))
 g_g_model.add(Flatten())

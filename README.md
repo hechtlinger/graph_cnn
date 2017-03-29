@@ -5,7 +5,7 @@ This is supplementary code to "A generalization of Convolutional Neural Networks
 ------------------
 
 ### Basic example
-The graph convolution is implemented as a Keras layer, recieving the matrix Q of the expected number of visits as an argument. The implementation details are discussed in the paper.
+The graph convolution is implemented as a Keras layer, receiving the matrix Q of the expected number of visits as an argument. The implementation details are discussed in the paper.
 ```python
 from graph_convolution import GraphConv
 
@@ -17,7 +17,7 @@ g_model.add(GraphConv(nb_filter=nb_filter, Q_matrix=Q_matrix,
 ------------------
 
 ### Merck Dataset
-The DPP4 dataset is part of the Merck Molecular Activity Challenge, a previous [Kaggle](https://www.kaggle.com/c/MerckActivity) competiation. The data used here was downloaded from the [supplemantry material](http://pubs.acs.org/doi/suppl/10.1021/ci500747n) of the paper "Deep Neural Nets as a Method for Quantitative Structure–Activity Relationships" by Ma et al.
+The DPP4 dataset is part of the Merck Molecular Activity Challenge, a previous [Kaggle](https://www.kaggle.com/c/MerckActivity) competition. The data used here was downloaded from the [supplementary material](http://pubs.acs.org/doi/suppl/10.1021/ci500747n) of the paper "Deep Neural Nets as a Method for Quantitative Structure–Activity Relationships" by Ma et al.
 
 ------------------
 

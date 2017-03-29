@@ -2,10 +2,9 @@
 """
 Reproduce the Merck DPP4 experiment described in section 4.1 of the paper:
 
-"Convolutional Neural Networks Generalization Utilizing the 
-Data Graph Structure"
+"A generalization of Convolutional Neural Networks to Graph-Structured Data"
 
-The Merck challange data was downloaded from the supplemantry
+The Merck challenge data was downloaded from the supplementary
 material to the paper "Deep Neural Nets as a Method for Quantitative 
 Structure–Activity Relationships" by Ma et al., located at:
 http://pubs.acs.org/doi/suppl/10.1021/ci500747n
@@ -92,7 +91,7 @@ graph_mat = np.argsort(corr_mat,1)[:,-nb_neighbors:]
 
 ### 1 layer graph CNN
 g_model = Sequential()
-g_model.add(GraphConv(nb_filter=nb_filter_1, Q_matrix = graph_mat, 
+g_model.add(GraphConv(nb_filter=nb_filter_1, neighbors_ix_mat = graph_mat, 
                       nb_neighbors=nb_neighbors, activation='relu', 
                       bias = True, input_shape=(X_train.shape[1],1)))
 g_model.add(Dropout(0.25))
@@ -124,7 +123,7 @@ print('1-Conv R squared = %.5f'%results['g'][-1])
 
 ### 1 layer graph CNN 1 FC
 g_fc_model = Sequential()
-g_fc_model.add(GraphConv(nb_filter=nb_filter_1, Q_matrix = graph_mat, 
+g_fc_model.add(GraphConv(nb_filter=nb_filter_1, neighbors_ix_mat = graph_mat, 
                          nb_neighbors=nb_neighbors, activation='relu', 
                          bias = True, input_shape=(X_train.shape[1],1)))
 g_fc_model.add(Dropout(0.25))
@@ -187,11 +186,11 @@ print('FC-FC R squared = %.5f'%(results['fc_fc'][-1]))
 # %%
 ### 2 layer graph CNN 1 FC
 g_g_fc_model = Sequential()
-g_g_fc_model.add(GraphConv(nb_filter=nb_filter_1, Q_matrix = graph_mat, 
+g_g_fc_model.add(GraphConv(nb_filter=nb_filter_1, neighbors_ix_mat = graph_mat, 
                            nb_neighbors=nb_neighbors, activation='relu', 
                            bias = True, input_shape=(X_train.shape[1],1)))
 g_g_fc_model.add(Dropout(0.25))
-g_g_fc_model.add(GraphConv(nb_filter=nb_filter_2, Q_matrix = graph_mat, 
+g_g_fc_model.add(GraphConv(nb_filter=nb_filter_2, neighbors_ix_mat = graph_mat, 
                            nb_neighbors=nb_neighbors, activation='relu'))
 g_g_fc_model.add(Dropout(0.25))
 g_g_fc_model.add(Flatten())

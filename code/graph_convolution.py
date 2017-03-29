@@ -22,10 +22,10 @@ class GraphConv(Layer):
         nb_filter: Number of convolution kernels to use
             (dimensionality of the output).
 		nb_neighbors: the number of neighbors the convolution
-			would be applied on (analogue to filter length)
-        Q_matrix: A matrix Q with dimensions
-			(variables, nb_neighbors) where the entry [Q]_ij
-			denotes for the i's variable the j's closest neighbor.
+		would be applied on (analogue to filter length)
+        neighbors_ix_mat: A matrix with dimensions
+	    (variables, nb_neighbors) where the entry [Q]_ij
+	    denotes for the i's variable the j's closest neighbor.
         weights: list of numpy arrays to set as initial weights.
         init: name of initialization function for the weights of the layer
             (see [initializations](../initializations.md)), or alternatively,
@@ -65,7 +65,7 @@ class GraphConv(Layer):
         `(batch_size, features, nb_filter)`.
     '''
     def __init__(self, nb_filter, nb_neighbors,
-			Q_matrix, weights=None,
+			neighbors_ix_mat, weights=None,
                  init='uniform', activation='linear',
                  W_regularizer=None, b_regularizer=None, 
                  activity_regularizer=None, W_constraint=None, 
@@ -77,7 +77,7 @@ class GraphConv(Layer):
 
         self.nb_filter = nb_filter     
         self.nb_neighbors = nb_neighbors
-        self.Q_matrix = Q_matrix
+        self.neighbors_ix_mat = neighbors_ix_mat
         
         self.W_regularizer = regularizers.get(W_regularizer)
         self.b_regularizer = regularizers.get(b_regularizer)
@@ -132,7 +132,7 @@ class GraphConv(Layer):
             del self.initial_weights
                 
     def call(self, x, mask=None):
-        x_expanded = x[:,self.Q_matrix, :]
+        x_expanded = x[:,self.neighbors_ix_mat, :]
 	  
         #Tensor dot implementation requires theano backend
         output = K.T.tensordot(x_expanded, self.W, [[2,3],[0,1]])

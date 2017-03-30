@@ -5,12 +5,12 @@ This is supplementary code to "A generalization of Convolutional Neural Networks
 ------------------
 
 ### Basic example
-The graph convolution is implemented as a Keras layer, receiving the matrix Q of the expected number of visits as an argument. The implementation details are discussed in the paper.
+The graph convolution is implemented as a Keras layer, receiving as an argument an index matrix denoting the nodes proximity according to the expected number of visits. The implementation details are discussed in the paper.
 ```python
 from graph_convolution import GraphConv
 
 g_model = Sequential()
-g_model.add(GraphConv(nb_filter=nb_filter, Q_matrix=Q_matrix, 
+g_model.add(GraphConv(nb_filter=nb_filter, neighbors_ix_mat=neighbors_ix_mat, 
                       nb_neighbors=nb_neighbors, input_shape=(1000,1)))
 ```
 

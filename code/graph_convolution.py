@@ -21,8 +21,8 @@ class GraphConv(Layer):
     # Arguments
         nb_filter: Number of convolution kernels to use
             (dimensionality of the output).
-		nb_neighbors: the number of neighbors the convolution
-		would be applied on (analogue to filter length)
+	    nb_neighbors: the number of neighbors the convolution
+	    would be applied on (analogue to filter length)
         neighbors_ix_mat: A matrix with dimensions
 	    (variables, nb_neighbors) where the entry [Q]_ij
 	    denotes for the i's variable the j's closest neighbor.
@@ -59,7 +59,7 @@ class GraphConv(Layer):
 
     # Input shape
         3D tensor with shape:
-        `(batch_size, features, filters)`.
+        `(batch_size, features, input_filters)`.
     # Output shape
         3D tensor with shape:
         `(batch_size, features, nb_filter)`.

@@ -7,7 +7,7 @@ from keras.engine.topology import Layer
 class GraphConv(Layer):
     '''Convolution operator for graphs.
 
-    REQUIRES THEANO BACKEND (see line 133).
+    REQUIRES THEANO BACKEND (line 138).
 	
     Implementation reduce the convolution to tensor product, 
     as described in "A generalization of Convolutional Neural 

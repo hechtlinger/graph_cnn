@@ -7,6 +7,7 @@ This is supplementary code to "A generalization of Convolutional Neural Networks
 ### Basic example
 The graph convolution is implemented as a Keras layer, receiving as an argument an index matrix denoting the nodes proximity according to the expected number of visits. The implementation details are discussed in the paper.
 ```python
+from kears.models import Sequential
 from graph_convolution import GraphConv
 
 g_model = Sequential()
@@ -22,6 +23,6 @@ The DPP4 dataset is part of the Merck Molecular Activity Challenge, a previous [
 ------------------
 
 ### Dependencies
-Requires Keras using the Theano backend. 
+Requires Keras with the Theano backend. 
 
 

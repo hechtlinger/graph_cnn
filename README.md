@@ -11,8 +11,8 @@ from kears.models import Sequential
 from graph_convolution import GraphConv
 
 g_model = Sequential()
-g_model.add(GraphConv(nb_filter=nb_filter, neighbors_ix_mat=neighbors_ix_mat, 
-                      nb_neighbors=nb_neighbors, input_shape=(1000,1)))
+g_model.add(GraphConv(filters=filters, neighbors_ix_mat=neighbors_ix_mat, 
+                      num_neighbors=num_neighbors, input_shape=(1000,1)))
 ```
 
 ------------------
@@ -23,6 +23,6 @@ The DPP4 dataset is part of the Merck Molecular Activity Challenge, a previous [
 ------------------
 
 ### Dependencies
-Requires Keras with the Theano backend. 
+Requires Keras version 2.0.0 or higher running the Theano backend. 
 
 

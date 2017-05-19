@@ -46,12 +46,12 @@ def r_square_np(y_true, y_pred):
 
 ### Parameters
 batch_size=200
-nb_epoch= 40
-nb_neighbors= 5
-nb_filter_1 = 10
-nb_filter_2 = 20
-nb_hidden_1 = 300
-nb_hidden_2 = 100
+epochs= 40
+num_neighbors= 5
+filters_1 = 10
+filters_2 = 20
+num_hidden_1 = 300
+num_hidden_2 = 100
 results = dict()
 
 # %% 
@@ -85,18 +85,18 @@ print('Test data shape:(%d,%d)'%(X_test.shape))
 ### Prepare the Graph Correlation matrix 
 corr_mat = np.array(normalize(np.abs(np.corrcoef(X_train.transpose())), 
                               norm='l1', axis=1),dtype='float64')
-graph_mat = np.argsort(corr_mat,1)[:,-nb_neighbors:]
+graph_mat = np.argsort(corr_mat,1)[:,-num_neighbors:]
 
 # %%
 
 ### 1 layer graph CNN
 g_model = Sequential()
-g_model.add(GraphConv(nb_filter=nb_filter_1, neighbors_ix_mat = graph_mat, 
-                      nb_neighbors=nb_neighbors, activation='relu', 
-                      bias = True, input_shape=(X_train.shape[1],1)))
+g_model.add(GraphConv(filters=filters_1, neighbors_ix_mat = graph_mat, 
+                      num_neighbors=num_neighbors, activation='relu', 
+                      input_shape=(X_train.shape[1],1)))
 g_model.add(Dropout(0.25))
 g_model.add(Flatten())
-g_model.add(Dense(1, W_regularizer=l2(0.01)))
+g_model.add(Dense(1, kernel_regularizer=l2(0.01)))
 g_model.add(Dropout(0.1))
 
 g_model.summary()
@@ -104,9 +104,9 @@ g_model.summary()
 g_model.compile(loss='mean_squared_error', optimizer='adam')
 
 results['g'] = []
-for i in range(nb_epoch):
+for i in range(epochs):
     g_model.fit(X_train.reshape(X_train.shape[0],X_train.shape[1],1), y_train,
-              nb_epoch=1,
+              epochs=1,
               batch_size=batch_size,
               verbose = 0,)
 
@@ -123,14 +123,14 @@ print('1-Conv R squared = %.5f'%results['g'][-1])
 
 ### 1 layer graph CNN 1 FC
 g_fc_model = Sequential()
-g_fc_model.add(GraphConv(nb_filter=nb_filter_1, neighbors_ix_mat = graph_mat, 
-                         nb_neighbors=nb_neighbors, activation='relu', 
-                         bias = True, input_shape=(X_train.shape[1],1)))
+g_fc_model.add(GraphConv(filters=filters_1, neighbors_ix_mat = graph_mat, 
+                         num_neighbors=num_neighbors, activation='relu', 
+                         input_shape=(X_train.shape[1],1)))
 g_fc_model.add(Dropout(0.25))
 g_fc_model.add(Flatten())
-g_fc_model.add(Dense(nb_hidden_2, activation='relu', W_regularizer=l2(0.01),))
+g_fc_model.add(Dense(num_hidden_2, activation='relu', kernel_regularizer=l2(0.01),))
 g_fc_model.add(Dropout(0.25))
-g_fc_model.add(Dense(1, W_regularizer=l2(0.01)))
+g_fc_model.add(Dense(1, kernel_regularizer=l2(0.01)))
 g_fc_model.add(Dropout(0.1))
 
 g_fc_model.summary()
@@ -138,10 +138,10 @@ g_fc_model.summary()
 g_fc_model.compile(loss='mean_squared_error', optimizer='adam')
 
 results['g_fc'] = []
-for i in range(nb_epoch):
+for i in range(epochs):
     g_fc_model.fit(X_train.reshape(X_train.shape[0],X_train.shape[1],1), 
                    y_train,
-                   nb_epoch=1,
+                   epochs=1,
                    batch_size=batch_size,
                    verbose = 0,)
 
@@ -157,11 +157,11 @@ print('Conv-FC R squared = %.5f'%results['g_fc'][-1])
 
 ### 2 FC
 fc_fc_model = Sequential()
-fc_fc_model.add(Dense(nb_hidden_1, activation='relu', 
+fc_fc_model.add(Dense(num_hidden_1, activation='relu', 
                       input_shape=(X_train.shape[1],)))
-fc_fc_model.add(Dense(nb_hidden_2, activation='relu'))
+fc_fc_model.add(Dense(num_hidden_2, activation='relu'))
 fc_fc_model.add(Dropout(0.25))
-fc_fc_model.add(Dense(1, W_regularizer=l2(0.01)))
+fc_fc_model.add(Dense(1, kernel_regularizer=l2(0.01)))
 fc_fc_model.add(Dropout(0.1))
 
 fc_fc_model.summary()
@@ -169,9 +169,9 @@ fc_fc_model.summary()
 fc_fc_model.compile(loss='mean_squared_error', optimizer=RMSprop())
 
 results['fc_fc'] = []
-for i in range(nb_epoch):
+for i in range(epochs):
     fc_fc_model.fit(X_train, y_train,
-              nb_epoch=1,
+              epochs=1,
               batch_size=batch_size,
               verbose = 0,)
 
@@ -186,17 +186,17 @@ print('FC-FC R squared = %.5f'%(results['fc_fc'][-1]))
 # %%
 ### 2 layer graph CNN 1 FC
 g_g_fc_model = Sequential()
-g_g_fc_model.add(GraphConv(nb_filter=nb_filter_1, neighbors_ix_mat = graph_mat, 
-                           nb_neighbors=nb_neighbors, activation='relu', 
-                           bias = True, input_shape=(X_train.shape[1],1)))
+g_g_fc_model.add(GraphConv(filters=filters_1, neighbors_ix_mat = graph_mat, 
+                           num_neighbors=num_neighbors, activation='relu', 
+                           input_shape=(X_train.shape[1],1)))
 g_g_fc_model.add(Dropout(0.25))
-g_g_fc_model.add(GraphConv(nb_filter=nb_filter_2, neighbors_ix_mat = graph_mat, 
-                           nb_neighbors=nb_neighbors, activation='relu'))
+g_g_fc_model.add(GraphConv(filters=filters_2, neighbors_ix_mat = graph_mat, 
+                           num_neighbors=num_neighbors, activation='relu'))
 g_g_fc_model.add(Dropout(0.25))
 g_g_fc_model.add(Flatten())
-g_g_fc_model.add(Dense(nb_hidden_1,activation='relu', W_regularizer=l2(0.01),))
+g_g_fc_model.add(Dense(num_hidden_1,activation='relu', kernel_regularizer=l2(0.01),))
 g_g_fc_model.add(Dropout(0.25))
-g_g_fc_model.add(Dense(1, W_regularizer=l2(0.01)))
+g_g_fc_model.add(Dense(1, kernel_regularizer=l2(0.01)))
 g_g_fc_model.add(Dropout(0.1))
 
 g_g_fc_model.summary()
@@ -204,10 +204,10 @@ g_g_fc_model.summary()
 g_g_fc_model.compile(loss='mean_squared_error', optimizer='adam')
 
 results['g_g_fc'] = []
-for i in range(nb_epoch):
+for i in range(epochs):
     g_g_fc_model.fit(X_train.reshape(X_train.shape[0],X_train.shape[1],1), 
                      y_train,
-                     nb_epoch=1,
+                     epochs=1,
                      batch_size=batch_size,
                      verbose = 0,)
 
@@ -221,13 +221,13 @@ print('g_g_fc R squared = %.5f'%(results['g_g_fc'][-1]))
 
 # %%
 # Generate the paper Figure 3
-legend_dict = {'fc_fc': '$FC_{'+str(nb_hidden_1)+'}-FC_{'+str(nb_hidden_2)+'}$',
-               'g': '$C_{'+str(nb_filter_1)+'}$',
-               'g_fc': '$C_{'+str(nb_filter_1)+'}-FC_{'+str(nb_hidden_1)+'}$',
-               'g_g_fc': '$C_{'+str(nb_filter_1)+'}-C_{'+str(nb_filter_2)+'}-FC_{'+str(nb_hidden_1)+'}$',
+legend_dict = {'fc_fc': '$FC_{'+str(num_hidden_1)+'}-FC_{'+str(num_hidden_2)+'}$',
+               'g': '$C_{'+str(filters_1)+'}$',
+               'g_fc': '$C_{'+str(filters_1)+'}-FC_{'+str(num_hidden_1)+'}$',
+               'g_g_fc': '$C_{'+str(filters_1)+'}-C_{'+str(filters_2)+'}-FC_{'+str(num_hidden_1)+'}$',
                 }
 
-x = np.arange(0, nb_epoch)
+x = np.arange(0, epochs)
 
 sns.set_style("whitegrid",{'legend.frameon': True})
 sns.set_context("paper")

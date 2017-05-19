@@ -15,7 +15,7 @@ from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation, Flatten
 from keras.optimizers import RMSprop
 from keras.datasets import mnist
-from keras.utils import np_utils
+from keras.utils import to_categorical
 
 from graph_convolution import GraphConv
 
@@ -27,10 +27,10 @@ np.random.seed(2017) # for reproducibility
 
 ### Parameters
 batch_size=128
-nb_epoch=40
-nb_neighbors=6
-nb_filter = 20
-nb_classes = 10
+epochs=40
+num_neighbors=6
+filters = 20
+num_classes = 10
 results = dict()
 
 ### Load the data
@@ -50,20 +50,20 @@ X_test = X_test[:,ix]
 print(X_train.shape[0], 'train samples')
 print(X_test.shape[0], 'test samples')
 # convert class vectors to binary class matrices
-Y_train = np_utils.to_categorical(y_train, nb_classes)
-Y_test = np_utils.to_categorical(y_test, nb_classes)
+Y_train = to_categorical(y_train, num_classes)
+Y_test = to_categorical(y_test, num_classes)
 
 ### Prepare the Graph Correlation matrix 
 corr_mat = np.array(normalize(np.abs(np.corrcoef(X_train.transpose())), 
                               norm='l1', axis=1),dtype='float64')
-graph_mat = np.argsort(corr_mat,1)[:,-nb_neighbors:]
+graph_mat = np.argsort(corr_mat,1)[:,-num_neighbors:]
 
 # %%
 
 ### Single layer of Graph Convolution
 g_model = Sequential()
-g_model.add(GraphConv(nb_filter=nb_filter, neighbors_ix_mat = graph_mat, 
-                      nb_neighbors=nb_neighbors, activation='relu',
+g_model.add(GraphConv(filters=filters, neighbors_ix_mat = graph_mat, 
+                      num_neighbors=num_neighbors, activation='relu',
                       input_shape=(X_train.shape[1],1,)))
 g_model.add(Dropout(0.2))
 g_model.add(Flatten())
@@ -75,7 +75,7 @@ g_model.compile(loss='categorical_crossentropy', optimizer=RMSprop(),
                 metrics=['accuracy'])
 
 results['g'] = g_model.fit(X_train.reshape(X_train.shape[0],X_train.shape[1],1), Y_train,
-                          nb_epoch=nb_epoch,
+                          epochs=epochs,
                           batch_size=batch_size,
                           verbose = 2,
                           validation_data=(X_test.reshape(X_test.shape[0],X_test.shape[1],1), Y_test))
@@ -85,8 +85,8 @@ g_error = 1-results['g'].__dict__['history']['val_acc'][-1]
 
 ### Graph Convolution followed by FC layer
 g_fc_model = Sequential()
-g_fc_model.add(GraphConv(nb_filter=nb_filter, neighbors_ix_mat = graph_mat, 
-                         nb_neighbors=nb_neighbors, activation='relu', 
+g_fc_model.add(GraphConv(filters=filters, neighbors_ix_mat = graph_mat, 
+                         num_neighbors=num_neighbors, activation='relu', 
                          input_shape=(X_train.shape[1],1,)))
 g_fc_model.add(Dropout(0.2))
 g_fc_model.add(Flatten())
@@ -100,7 +100,7 @@ g_fc_model.compile(loss='categorical_crossentropy', optimizer=RMSprop(),
                    metrics=['accuracy'])
 
 results['g_fc'] = g_fc_model.fit(X_train.reshape(X_train.shape[0],X_train.shape[1],1), Y_train,
-                          nb_epoch=nb_epoch,
+                          epochs=epochs,
                           batch_size=batch_size,
                           verbose = 2,
                           validation_data=(X_test.reshape(X_test.shape[0],X_test.shape[1],1), Y_test))
@@ -110,12 +110,12 @@ g_fc_error = 1-results['g_fc'].__dict__['history']['val_acc'][-1]
 
 ### 2 Layer of Graph Convolution
 g_g_model = Sequential()
-g_g_model.add(GraphConv(nb_filter=nb_filter, neighbors_ix_mat = graph_mat, 
-                        nb_neighbors=nb_neighbors, activation='relu', 
+g_g_model.add(GraphConv(filters=filters, neighbors_ix_mat = graph_mat, 
+                        num_neighbors=num_neighbors, activation='relu', 
                         bias = True, input_shape=(X_train.shape[1],1,)))
 g_g_model.add(Dropout(0.2))
-g_g_model.add(GraphConv(nb_filter=nb_filter, neighbors_ix_mat = graph_mat, 
-                        nb_neighbors=nb_neighbors, activation='relu'))
+g_g_model.add(GraphConv(filters=filters, neighbors_ix_mat = graph_mat, 
+                        num_neighbors=num_neighbors, activation='relu'))
 g_g_model.add(Dropout(0.2))
 g_g_model.add(Flatten())
 g_g_model.add(Dense(10, activation='softmax'))
@@ -126,7 +126,7 @@ g_g_model.compile(loss='categorical_crossentropy', optimizer=RMSprop(),
                   metrics=['accuracy'])
 
 results['g_g'] = g_g_model.fit(X_train.reshape(X_train.shape[0],X_train.shape[1],1), Y_train,
-                          nb_epoch=nb_epoch,
+                          epochs=epochs,
                           batch_size=batch_size,
                           verbose = 2,
                           validation_data=(X_test.reshape(X_test.shape[0],X_test.shape[1],1), Y_test))
@@ -149,7 +149,7 @@ FC_FC_model.compile(loss='categorical_crossentropy', optimizer=RMSprop(),
                     metrics=['accuracy'])
 
 results['fc_fc'] = FC_FC_model.fit(X_train, Y_train,
-                                  nb_epoch=nb_epoch,
+                                  epochs=epochs,
                                   batch_size=batch_size,
                                   verbose = 2,
                                   validation_data=(X_test, Y_test))
@@ -168,7 +168,7 @@ LR_model.compile(loss='categorical_crossentropy', optimizer=RMSprop(),
                  metrics=['accuracy'])
 
 results['lr'] = LR_model.fit(X_train, Y_train,
-                                nb_epoch=300,
+                                epochs=300,
                                 batch_size=batch_size,
                                 verbose = 2,
                                 validation_data=(X_test, Y_test))

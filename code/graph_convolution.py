@@ -2,12 +2,12 @@ from keras.layers.core import *
 
 from keras import backend as K
 from keras.engine.topology import Layer
-
+from keras import initializers
 
 class GraphConv(Layer):
     '''Convolution operator for graphs.
 
-    REQUIRES THEANO BACKEND (line 138).
+    REQUIRES THEANO BACKEND (line 130).
 	
     Implementation reduce the convolution to tensor product, 
     as described in "A generalization of Convolutional Neural 
@@ -19,35 +19,19 @@ class GraphConv(Layer):
     with 1000 features (or nodes) and a single filter.
 
     # Arguments
-        nb_filter: Number of convolution kernels to use
+        filters: Number of convolution kernels to use
             (dimensionality of the output).
-	    nb_neighbors: the number of neighbors the convolution
-	    would be applied on (analogue to filter length)
+	   num_neighbors: the number of neighbors the convolution
+            would be applied on (analogue to filter length)
         neighbors_ix_mat: A matrix with dimensions
-	    (variables, nb_neighbors) where the entry [Q]_ij
-	    denotes for the i's variable the j's closest neighbor.
-        weights: list of numpy arrays to set as initial weights.
-        init: name of initialization function for the weights of the layer
-            (see [initializations](../initializations.md)), or alternatively,
-            Theano function to use for weights initialization.
-            This parameter is only relevant
-            if you don't pass a `weights` argument.
+            (variables, num_neighbors) where the entry [Q]_ij
+            denotes for the i's variable the j's closest neighbor.
         activation: name of activation function to use
             (see [activations](../activations.md)),
             or alternatively, elementwise Theano function.
             If you don't specify anything, no activation is applied
             (ie. "linear" activation: a(x) = x).
-        W_regularizer: instance of [WeightRegularizer](../regularizers.md)
-            (eg. L1 or L2 regularization), applied to the main weights matrix.
-        b_regularizer: instance of [WeightRegularizer](../regularizers.md),
-            applied to the bias.
-        activity_regularizer: instance of [ActivityRegularizer](../regularizers.md),
-            applied to the network output.
-        W_constraint: instance of the [constraints](../constraints.md) module
-            (eg. maxnorm, nonneg), applied to the main weights matrix.
-        b_constraint: instance of the [constraints](../constraints.md) module,
-            applied to the bias.
-        bias: whether to include a bias
+        use_bias: whether to include a bias
             (i.e. make the layer affine rather than linear).
         input_dim: Number of filters/dimensions in the input.
             Either this argument or the keyword argument `input_shape`must be
@@ -56,91 +40,99 @@ class GraphConv(Layer):
             This argument is required if you are going to connect
             `Flatten` then `Dense` layers upstream
             (without it, the shape of the dense outputs cannot be computed).
-
-    # Input shape
+        use_bias: Boolean, whether the layer uses a bias vector.
+        kernel_initializer: Initializer for the `kernel` weights matrix
+            (see [initializers](../initializers.md)).
+        bias_initializer: Initializer for the bias vector
+            (see [initializers](../initializers.md)).
+        kernel_regularizer: Regularizer function applied to
+            the `kernel` weights matrix
+            (see [regularizer](../regularizers.md)).
+        bias_regularizer: Regularizer function applied to the bias vector
+            (see [regularizer](../regularizers.md)).
+        activity_regularizer: Regularizer function applied to
+            the output of the layer (its "activation").
+            (see [regularizer](../regularizers.md)).
+        kernel_constraint: Constraint function applied to the kernel matrix
+            (see [constraints](../constraints.md)).
+        bias_constraint: Constraint function applied to the bias vector
+            (see [constraints](../constraints.md)).
+            
+    # Input shape    
         3D tensor with shape:
-        `(batch_size, features, input_filters)`.
+        `(batch_size, features, input_dim)`.
     # Output shape
         3D tensor with shape:
-        `(batch_size, features, nb_filter)`.
+        `(batch_size, features, filters)`.
     '''
-    def __init__(self, nb_filter, nb_neighbors,
-			neighbors_ix_mat, weights=None,
-                 init='uniform', activation='linear',
-                 W_regularizer=None, b_regularizer=None, 
-                 activity_regularizer=None, W_constraint=None, 
-			b_constraint=None, bias=True,
-			input_dim=None, input_length=None, **kwargs):
+        
+    def __init__(self, 
+                 filters, 
+                 num_neighbors,
+                 neighbors_ix_mat, 
+                 activation=None,
+                 use_bias=True,
+                 kernel_initializer='glorot_uniform',
+                 bias_initializer='zeros',
+                 kernel_regularizer=None,
+                 bias_regularizer=None, 
+                 activity_regularizer=None,
+                 kernel_constraint=None,
+                 bias_constraint=None,                 
+                 **kwargs):
 
         if K.backend() != 'theano':
             raise Exception("GraphConv Requires Theano Backend.")
-
-        self.nb_filter = nb_filter     
-        self.nb_neighbors = nb_neighbors
+            
+        if 'input_shape' not in kwargs and 'input_dim' in kwargs:
+           kwargs['input_shape'] = (kwargs.pop('input_dim'),)
+           
+        super(GraphConv, self).__init__(**kwargs)        
+      
+        self.filters = filters     
+        self.num_neighbors = num_neighbors
         self.neighbors_ix_mat = neighbors_ix_mat
         
-        self.W_regularizer = regularizers.get(W_regularizer)
-        self.b_regularizer = regularizers.get(b_regularizer)
-        self.activity_regularizer = regularizers.get(activity_regularizer)
-        
-        self.W_constraint = constraints.get(W_constraint)
-        self.b_constraint = constraints.get(b_constraint)
-        
-        self.bias = bias
-        self.initial_weights = weights
-
-        self.init = initializations.get(init, dim_ordering='th')
         self.activation = activations.get(activation)
-        
-        self.input_dim = input_dim
-        self.input_length = input_length
-        if self.input_dim:
-			kwargs['input_shape'] = (self.input_length, self.input_dim)	
-        super(GraphConv, self).__init__(**kwargs)
+        self.use_bias = use_bias
+        self.kernel_initializer = initializers.get(kernel_initializer)
+        self.bias_initializer = initializers.get(bias_initializer)
+        self.kernel_regularizer = regularizers.get(kernel_regularizer)
+        self.bias_regularizer = regularizers.get(bias_regularizer)
+        self.activity_regularizer = regularizers.get(activity_regularizer)
+        self.kernel_constraint = constraints.get(kernel_constraint)
+        self.bias_constraint = constraints.get(bias_constraint)
+        self.input_spec = InputSpec(ndim=3)      
 
     def build(self, input_shape):
         input_dim = input_shape[2]
-        self.W_shape = (self.nb_neighbors, input_dim, self.nb_filter)
-        self.W = self.init(self.W_shape, name='{}_W'.format(self.name))
-        if self.bias:
-            self.b = K.zeros((self.nb_filter,), name='{}_b'.format(self.name))
-            self.trainable_weights = [self.W, self.b]
+        kernel_shape = (self.num_neighbors, input_dim, self.filters)
+ 
+        self.kernel = self.add_weight(shape=kernel_shape,
+                                      initializer=self.kernel_initializer,
+                                      name='kernel',
+                                      regularizer=self.kernel_regularizer,
+                                      constraint=self.kernel_constraint)
+        if self.use_bias:
+            self.bias = self.add_weight(shape=(self.filters,),
+                                        initializer=self.bias_initializer,
+                                        name='bias',
+                                        regularizer=self.bias_regularizer,
+                                        constraint=self.bias_constraint)
         else:
-            self.trainable_weights = [self.W]
-        self.regularizers = []
-
-        if self.W_regularizer:
-            self.W_regularizer.set_param(self.W)
-            self.regularizers.append(self.W_regularizer)
+            self.bias = None
+        self.built = True
+                       
+    def call(self, x):
+        x_expanded = x[:,self.neighbors_ix_mat,:]
+        #Tensor dot implementation requires theano backend  
+        output = K.T.tensordot(x_expanded, self.kernel, [[2,3],[0,1]])   
+        if self.use_bias:
+            output += K.reshape(self.bias, (1, 1, self.filters))
         
-        if self.bias and self.b_regularizer:
-            self.b_regularizer.set_param(self.b)
-            self.regularizers.append(self.b_regularizer)
-        
-        if self.activity_regularizer:
-            self.activity_regularizer.set_layer(self)
-            self.regularizers.append(self.activity_regularizer)
-        
-        self.constraints = {}
-        if self.W_constraint:
-            self.constraints[self.W] = self.W_constraint
-        if self.bias and self.b_constraint:
-            self.constraints[self.b] = self.b_constraint
-        
-        if self.initial_weights is not None:
-            self.set_weights(self.initial_weights)
-            del self.initial_weights
-                
-    def call(self, x, mask=None):
-        x_expanded = x[:,self.neighbors_ix_mat, :]
-	  
-        #Tensor dot implementation requires theano backend
-        output = K.T.tensordot(x_expanded, self.W, [[2,3],[0,1]])
-        if self.bias:
-            output += K.reshape(self.b, (1, 1, self.nb_filter))
         output = self.activation(output)
         return output
 
-    def get_output_shape_for(self, input_shape):
-        return (input_shape[0], input_shape[1], self.nb_filter)
+    def compute_output_shape(self, input_shape):
+        return (input_shape[0], input_shape[1], self.filters)
 
